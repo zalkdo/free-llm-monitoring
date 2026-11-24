@@ -2,13 +2,20 @@ spring:
   application:
     name: free-llm-monitoring
 
+# 스트리밍(text/event-stream) 응답에 charset 이 빠져 브라우저에서 한글이 깨지는 문제 방지
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      force-response: true
+
   ai:
-    # 사용할 모델 공급자 선택 (openai | ollama)
+    # 사용할 모델 공급자 선택 (openai | ollama) — Gemini 는 profile gemini 사용 (application-gemini.yml)
     model:
       chat: openai
       embedding: openai
     openai:
-      api-key: ${OPENAI_API_KEY}
+      api-key: ${OPENAI_API_KEY:}
       chat:
         options:
           model: gpt-4o-mini

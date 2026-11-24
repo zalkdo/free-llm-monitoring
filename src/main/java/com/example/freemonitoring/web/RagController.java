@@ -28,7 +28,8 @@ public class RagController {
 
     @GetMapping
     public String ask(@RequestParam String question,
-                      @RequestParam(defaultValue = "4") int topK) {
+                      @RequestParam(defaultValue = "4") int topK,
+                      @RequestParam(required = false) String model) {
         QuestionAnswerAdvisor qaAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
                 .searchRequest(SearchRequest.builder()
                         .topK(topK)
@@ -36,7 +37,7 @@ public class RagController {
                         .build())
                 .build();
 
-        return chatClient.prompt()
+        return ModelOptions.apply(chatClient.prompt(), model)
                 .advisors(qaAdvisor)
                 .user(question)
                 .call()

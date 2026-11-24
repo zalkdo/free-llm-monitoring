@@ -4,6 +4,8 @@
 *.iml
 *.ipr
 
+.gradle/
+
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/

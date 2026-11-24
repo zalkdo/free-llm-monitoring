@@ -24,8 +24,9 @@ public class AgentController {
     }
 
     @GetMapping
-    public String ask(@RequestParam String message) {
-        return chatClient.prompt()
+    public String ask(@RequestParam String message,
+                      @RequestParam(required = false) String model) {
+        return ModelOptions.apply(chatClient.prompt(), model)
                 .user(message)
                 .tools(orderTools)
                 .call()

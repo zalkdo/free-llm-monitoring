@@ -23,16 +23,18 @@ public class ChatController {
     }
 
     @GetMapping
-    public String chat(@RequestParam String message) {
-        return chatClient.prompt()
+    public String chat(@RequestParam String message,
+                       @RequestParam(required = false) String model) {
+        return ModelOptions.apply(chatClient.prompt(), model)
                 .user(message)
                 .call()
                 .content();
     }
 
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> stream(@RequestParam String message) {
-        return chatClient.prompt()
+    public Flux<String> stream(@RequestParam String message,
+                               @RequestParam(required = false) String model) {
+        return ModelOptions.apply(chatClient.prompt(), model)
                 .user(message)
                 .stream()
                 .content();

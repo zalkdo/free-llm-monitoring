@@ -50,6 +50,43 @@ docker exec fm-ollama ollama pull nomic-embed-text
 cd .. && ./gradlew bootRun --args='--spring.ai.model.chat=ollama --spring.ai.model.embedding=ollama'
 ```
 
+### Gemini 로 실행
+Gemini 의 OpenAI 호환 엔드포인트를 사용합니다 (`application-gemini.yml`). API 키는 Google AI Studio 에서 발급합니다.
+
+```bash
+export GEMINI_API_KEY=...
+export GEMINI_CHAT_MODEL=gemini-3.5-flash-lite      # 선택 (기본값)
+export GEMINI_EMBEDDING_MODEL=gemini-embedding-2    # 선택 (기본값)
+./gradlew bootRun --args='--spring.profiles.active=gemini'
+```
+
+Windows (PowerShell):
+```powershell
+$env:GEMINI_API_KEY="..."
+$env:GEMINI_CHAT_MODEL="gemini-3.5-flash-lite"   # 선택
+.\gradlew.bat bootRun --args='--spring.profiles.active=gemini'
+```
+
+- 사용 가능한 모델 조회: `GET /api/models` (chat), `GET /api/models?type=embedding`, `GET /api/models?type=all`
+- 요청별 모델 선택: 각 API 에 `&model=<id>` 추가 (예: `/api/chat?message=안녕&model=gemini-3.8-flash`)
+- 메트릭의 `gen_ai_system` 라벨은 `openai` 로 기록되며, 모델은 `gen_ai_request_model` 라벨로 구분됩니다.
+- 임베딩 모델을 바꾸면 기동 시 FAQ 가 새 모델로 다시 적재됩니다 (요청별 모델 선택은 chat 에만 적용).
+
+주요 Gemini 모델 (출처: Google AI Studio Docs — Models/Deprecations, 2026-11-20 조회 · 계정별 가용 모델은 `/api/models` 로 확인)
+
+| 구분 | 모델 ID | 상태 |
+|---|---|---|
+| Chat | `gemini-3.8-flash` | Stable |
+| Chat | `gemini-3.6-flash` | Stable |
+| Chat | `gemini-3.5-flash-lite` | Stable · 신규 프로젝트 권장 (기본값) |
+| Chat | `gemini-3.1-flash-lite` | Stable · 2027-05-07 종료 예정 |
+| Chat | `gemini-3.1-pro-preview` | Preview |
+| Chat | `gemini-3-flash-preview` | Preview |
+| Chat | `gemini-4-hydrogen` / `gemini-4-carbon` / `gemini-4-neon` / `gemini-4-argon` | Gemini 4 |
+| Chat | `gemini-2.5-flash` / `gemini-2.5-pro` | Deprecated · 기존 사용자만 · 2026-12-01 종료 |
+| Embedding | `gemini-embedding-2` | 현행 (기본값) |
+| Embedding | `gemini-embedding-001` | 2028-05-14 종료 예정 |
+
 ## 2. 강의별 코드 위치
 
 | 강의 | 파일 |
@@ -59,14 +96,19 @@ cd .. && ./gradlew bootRun --args='--spring.ai.model.chat=ollama --spring.ai.mod
 | F-3 대시보드 | `build.gradle`(micrometer-registry-prometheus), `observability/docker-compose.yml`, `prometheus.yml`, `grafana/dashboards/free-llm-monitoring-dashboard.json` |
 | F-4 비용 폭탄 | `web/RagController`(topK), `scripts/load-test.sh` (`TOPK=20`) |
 
+> 요청이 처리되는 클래스·메서드 흐름과 Spring AI 내부 동작은 [docs/spring-ai-request-flow.md](docs/spring-ai-request-flow.md) 참고
+
 ## 3. 엔드포인트
 
 | 엔드포인트 | 설명 |
 |---|---|
-| `GET /api/chat?message=` | 단순 채팅 |
-| `GET /api/chat/stream?message=` | 스트리밍 채팅 |
-| `GET /api/rag?question=&topK=4` | FAQ 20건 검색 + 답변 (시작 시 FAQ 임베딩·적재) |
-| `GET /api/agent?message=` | 주문 조회 툴 사용 (모델 호출 2회) |
+| `GET /api/chat?message=[&model=]` | 단순 채팅 |
+| `GET /api/chat/stream?message=[&model=]` | 스트리밍 채팅 |
+| `GET /api/rag?question=&topK=4[&model=]` | FAQ 20건 검색 + 답변 (시작 시 FAQ 임베딩·적재) |
+| `GET /api/agent?message=[&model=]` | 주문 조회 툴 사용 (모델 호출 2회) |
+| `GET /api/models?type=chat\|embedding\|all` | Gemini 사용 가능 모델 목록 (profile `gemini` 전용) |
+
+> `model` 미지정 시 `application.yml`(또는 `application-gemini.yml`)의 기본 모델을 사용합니다.
 
 ## 4. 주요 메트릭 (Prometheus 이름)
 

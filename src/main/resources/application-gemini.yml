@@ -1,0 +1,26 @@
+# Gemini (OpenAI 호환 엔드포인트) — --spring.profiles.active=gemini 로 활성화
+# OpenAI 스타터를 그대로 쓰고 base-url·API 키·모델만 Gemini 로 교체한다.
+# 사용 가능한 모델은 GET /api/models 로 조회하고, 요청별로 &model= 파라미터로 바꿀 수 있다.
+spring:
+  ai:
+    model:
+      chat: openai
+      embedding: openai
+    openai:
+      api-key: ${GOOGLE_GEMINI_API_KEY:}
+      base-url: https://generativelanguage.googleapis.com/v1beta/openai
+      chat:
+        completions-path: /chat/completions   # 기본값 /v1/chat/completions 중복 방지
+        options:
+          model: ${GEMINI_CHAT_MODEL:gemini-3.5-flash-lite}
+          temperature: 0.3
+          stream-usage: true
+      embedding:
+        embeddings-path: /embeddings          # 기본값 /v1/embeddings 중복 방지
+        options:
+          model: ${GEMINI_EMBEDDING_MODEL:gemini-embedding-2}
+
+# 모델 목록 조회용 (Gemini 네이티브 API)
+gemini:
+  api-key: ${GOOGLE_GEMINI_API_KEY:}
+  models-url: https://generativelanguage.googleapis.com/v1beta/models
